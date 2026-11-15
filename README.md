@@ -1,67 +1,70 @@
 # Sprite Cutter
 
-Sprite Cutter is a small, browser-based tool for preparing sprite frames from a spritesheet. Load an image, place one or more crop boxes over the characters, preview the resulting PNGs, and export the frames individually or as a ZIP archive.
+O Sprite Cutter é uma ferramenta para preparar quadros de sprites a partir de uma spritesheet. Carregue uma imagem, posicione um ou mais recortes sobre os personagens, confira a prévia dos PNGs e exporte os quadros individualmente ou em um arquivo ZIP.
 
-The interface is in Brazilian Portuguese (`pt-BR`). The tool has no build step, server, or third-party runtime dependencies: open `index.html` in a modern browser to use it. Image decoding, crop previews, transparency processing, and ZIP creation happen locally in the browser.
+A interface está em português do Brasil (`pt-BR`). Não é necessário instalar dependências, compilar o projeto nem iniciar um servidor: basta abrir o arquivo `index.html` em um navegador moderno. O carregamento e o processamento das imagens, as prévias, a remoção do fundo e a criação do ZIP acontecem localmente no navegador.
 
-## UI previews
+> [Leia esta documentação em inglês](README-en.md).
 
-These repository assets are illustrative SVG previews based on the app's actual layout and controls. They are not live browser captures. The sprite artwork in the previews is sample artwork.
+## Prévia da interface
 
-![Sprite Cutter workspace preview](screenshots/interface-preview.svg)
+As imagens abaixo são ilustrações em SVG baseadas no layout e nos controles reais do aplicativo; elas não são capturas de tela ao vivo. Os personagens mostrados são desenhos de exemplo.
 
-![Transparent PNG and ZIP export preview](screenshots/export-preview.svg)
+![Prévia ilustrativa da área de trabalho do Sprite Cutter](screenshots/interface-preview.svg)
 
-## Features
+![Prévia ilustrativa da exportação de PNGs transparentes e arquivo ZIP](screenshots/export-preview.svg)
 
-- **Load a spritesheet:** choose a file or drag it into the upload area. The interface accepts PNG, JPEG, WebP, and GIF image files.
-- **Place crops by hand:** click the spritesheet to add a crop centered around the pointer. Drag an existing crop to reposition it. Crop boxes stay within the image bounds.
-- **Set crop dimensions:** change the shared width and height for the crop boxes. The defaults are 64 × 68 pixels.
-- **Use a guide grid:** turn on the auxiliary grid and adjust cell spacing and offsets to help line up crops with a sheet's layout.
-- **Arrange frames:** select a crop to make it active, move it earlier or later in the frame order, or remove one or clear all crops.
-- **Preview output:** inspect the active crop as a PNG and preview the crop sequence as an animation. Animation speed is adjustable from 1 to 24 FPS; it starts at 8 FPS.
-- **Remove a flat background:** sample a color from the spritesheet and adjust the tolerance. Similar pixels become transparent, with partial alpha at the edge of the tolerance range to soften the cutout.
-- **Fit characters into a consistent frame:** the enabled-by-default fit option trims transparent or removed-background space, scales the remaining content proportionally, centers it horizontally, and aligns it to the ground guide. The exported canvas keeps the configured crop dimensions. Internal padding is adjustable.
-- **Export frames:** save separate `sprite_001.png`, `sprite_002.png`, … files to a chosen folder when the browser supports folder access, or download `sprites_recortados.zip`. The ZIP contains the PNGs in a `sprites/` directory.
-- **Zoom and fit:** zoom the sheet in or out and fit it into the workspace.
+## Funcionalidades
 
-## Quick start
+- **Carregue uma spritesheet:** selecione um arquivo ou arraste-o para a área de envio. São aceitas imagens PNG, JPEG, WebP e GIF.
+- **Posicione os recortes manualmente:** clique na spritesheet para criar um recorte centralizado no ponteiro. Arraste um recorte existente para reposicioná-lo. Os recortes permanecem dentro dos limites da imagem.
+- **Defina o tamanho dos recortes:** altere a largura e a altura compartilhadas entre os recortes. O tamanho inicial é 64 × 68 pixels.
+- **Use uma grade auxiliar:** ative a grade e ajuste espaçamentos e margens para ajudar a alinhar os recortes com a organização da spritesheet.
+- **Organize os quadros:** selecione um recorte para torná-lo ativo, mova-o para antes ou depois na sequência, remova o recorte atual ou limpe todos os recortes.
+- **Confira o resultado:** visualize o PNG do recorte atual e reproduza a sequência como animação. A velocidade pode ser ajustada de 1 a 24 FPS; o padrão é 8 FPS.
+- **Remova uma cor de fundo uniforme:** escolha uma cor na spritesheet e ajuste a tolerância. Pixels de cor semelhante ficam transparentes, com transparência parcial nas bordas para suavizar o recorte.
+- **Encaixe os personagens em quadros consistentes:** a opção de encaixe, ativada por padrão, remove o espaço transparente ou o fundo removido, redimensiona o conteúdo proporcionalmente, centraliza o personagem e alinha seus pés à linha de chão. A imagem exportada mantém as dimensões configuradas para o recorte. O preenchimento interno pode ser ajustado.
+- **Exporte os quadros:** salve arquivos separados como `sprite_001.png`, `sprite_002.png` e assim por diante em uma pasta, quando houver suporte no navegador, ou baixe `sprites_recortados.zip`. O ZIP contém os PNGs em uma pasta `sprites/`.
+- **Ajuste a visualização:** aumente ou diminua o zoom e encaixe a spritesheet na área de trabalho.
 
-1. Download or clone this repository.
-2. Open `index.html` in a current desktop browser.
-3. Select a PNG, JPEG, WebP, or GIF spritesheet, or drag one into the upload area.
-4. Set the crop width and height. Turn on the auxiliary grid and adjust its spacing or offsets if the sheet has a regular layout.
-5. Click each character to add a crop. Drag crop boxes to fine-tune their positions. Reorder frames if needed.
-6. Review the PNG preview. If the artwork needs cleanup, sample its background color and adjust the tolerance. Keep **Cortar espaços extras e encaixar** enabled to normalize the character's size and baseline within each output frame.
-7. Use **Exportar sprites selecionados** to save to a folder where supported, or **Baixar como ZIP** to download an archive.
+## Como começar
 
-## How the crop and preview work
+1. Baixe ou clone este repositório.
+2. Abra `index.html` em um navegador moderno para computador.
+3. Selecione uma spritesheet PNG, JPEG, WebP ou GIF, ou arraste o arquivo para a área de envio.
+4. Defina a largura e a altura do recorte. Se a folha tiver uma organização regular, ative a grade auxiliar e ajuste o espaçamento e as margens.
+5. Clique em cada personagem para criar um recorte. Arraste os recortes para acertar a posição e reorganize os quadros se necessário.
+6. Confira a prévia do PNG. Para remover o fundo, selecione sua cor e ajuste a tolerância. Mantenha **Cortar espaços extras e encaixar** ativado para padronizar o tamanho do personagem e a linha dos pés.
+7. Use **Exportar sprites selecionados** para salvar em uma pasta, quando houver suporte, ou **Baixar como ZIP** para baixar um arquivo compactado.
 
-Each click on the sheet creates a crop centered on the pointer using the current width and height. When the pointer lands on an existing crop, dragging moves that crop instead. Crop order determines the animation order and the numbering of exported files.
+## Recortes e prévias
 
-When content fitting is enabled, the preview removes transparent space around the character, scales the remaining content proportionally to fit the output frame and padding, centers it, and places its feet near the configured ground line. The default output frame is 64 × 68 pixels with 2 pixels of internal padding and a ground position of 60 pixels. These values can be adjusted in the interface.
+Cada clique na imagem cria um recorte centralizado no ponteiro, usando a largura e a altura atuais. Se o ponteiro estiver sobre um recorte existente, arraste para movê-lo. A ordem dos recortes define a sequência da animação e a numeração dos arquivos exportados.
 
-The background color picker lets you sample a pixel from the loaded image. The tolerance slider controls how close a pixel's color must be to the sampled color before it is made transparent. If fitting is enabled and no color was sampled, the app estimates a background color from the crop's border. Review the preview, especially around fine outlines or colors close to the background, before exporting.
+Com o encaixe de conteúdo ativado, o aplicativo remove os espaços transparentes ao redor do personagem, redimensiona proporcionalmente o conteúdo para caber no quadro e no preenchimento definido, centraliza-o e posiciona os pés perto da linha de chão. O quadro de saída continua com o tamanho configurado. Por padrão, o quadro mede 64 × 68 pixels, o preenchimento interno é de 2 pixels e a linha de chão fica na posição vertical de 60 pixels. Esses valores podem ser alterados na interface.
 
-## Project files
+O seletor de cor de fundo permite escolher um pixel da imagem carregada. A tolerância define o quanto a cor de cada pixel pode diferir da cor escolhida para que ele fique transparente. Se o encaixe estiver ativado e nenhuma cor tiver sido selecionada, o aplicativo estima a cor de fundo a partir das bordas do recorte. Confira a prévia, principalmente em contornos delicados ou cores parecidas com o fundo.
 
-| File | Purpose |
+## Arquivos do projeto
+
+| Arquivo | Descrição |
 | --- | --- |
-| `index.html` | Page structure, interface copy, styling, and responsive layout. |
-| `app.js` | Image loading, crop placement, previews, animation, transparency processing, and exports. |
-| `screenshots/` | Illustrative SVG previews included in this README. |
+| `index.html` | Estrutura da página, textos da interface, estilos e layout responsivo. |
+| `app.js` | Carregamento de imagens, posicionamento de recortes, prévias, animação, transparência e exportação. |
+| `README-en.md` | Documentação em inglês. |
+| `screenshots/` | Prévia ilustrativa da interface, prévia da exportação e spritesheet de exemplo. |
 
-## Technical notes
+## Detalhes técnicos
 
-- Built with plain HTML, CSS, and JavaScript; no bundler or package installation is required.
-- Uses the browser's Canvas API for image rendering and PNG generation.
-- Uses the File System Access API for folder export when it is available; otherwise, the folder-export action falls back to ZIP download.
-- The ZIP archive is assembled in the browser without a ZIP library.
-- The tool does not upload the selected spritesheet to a server.
+- Desenvolvido com HTML, CSS e JavaScript sem bibliotecas de terceiros ou etapa de compilação.
+- Usa a Canvas API do navegador para renderizar imagens e gerar PNGs.
+- Usa a File System Access API para salvar em uma pasta quando o navegador oferece suporte. Caso contrário, a exportação pela pasta usa o download de ZIP como alternativa.
+- O arquivo ZIP é criado no próprio navegador, sem uma biblioteca de compactação.
+- A spritesheet selecionada não é enviada para um servidor.
 
-## Limitations
+## Limitações
 
-- Crop boxes are placed manually; the auxiliary grid is a visual alignment guide and does not automatically detect characters.
-- Background removal is based on color similarity, so colors in the sprite that resemble the chosen background can also be removed. Check the preview and adjust the tolerance.
-- Folder export depends on browser support. ZIP download is the fallback.
-- The app is intended for modern desktop browsers. Its layout adapts to narrower screens, though the crop workflow is easier with a larger viewport.
+- Os recortes são posicionados manualmente. A grade auxiliar ajuda no alinhamento, mas não detecta personagens automaticamente.
+- A remoção do fundo compara cores; por isso, partes do sprite que tenham cores parecidas com o fundo selecionado também podem ficar transparentes. Confira a prévia e ajuste a tolerância.
+- A exportação para uma pasta depende do suporte do navegador. O download de ZIP é a alternativa.
+- O aplicativo foi pensado para navegadores modernos em computadores. O layout se adapta a telas menores, mas o fluxo de recorte é mais fácil em uma janela maior.

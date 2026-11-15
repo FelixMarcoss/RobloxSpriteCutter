@@ -52,11 +52,73 @@
     return -1;
   }
 
+  function resizeHandleAt(point, cut) {
+    if (!cut) return null;
+    const threshold = 9 / zoom;
+    const near = (a, b) => Math.abs(a - b) <= threshold;
+    const insideX = point.x >= cut.x - threshold && point.x <= cut.x + cut.w + threshold;
+    const insideY = point.y >= cut.y - threshold && point.y <= cut.y + cut.h + threshold;
+    if (!insideX || !insideY) return null;
+    const west = near(point.x, cut.x);
+    const east = near(point.x, cut.x + cut.w);
+    const north = near(point.y, cut.y);
+    const south = near(point.y, cut.y + cut.h);
+    if (north && west) return 'nw';
+    if (north && east) return 'ne';
+    if (south && east) return 'se';
+    if (south && west) return 'sw';
+    if (north) return 'n';
+    if (east) return 'e';
+    if (south) return 's';
+    if (west) return 'w';
+    return null;
+  }
+
+  function cursorForHandle(handle) {
+    if (handle === 'n' || handle === 's') return 'ns-resize';
+    if (handle === 'e' || handle === 'w') return 'ew-resize';
+    if (handle === 'nw' || handle === 'se') return 'nwse-resize';
+    return 'nesw-resize';
+  }
+
+  function resizeCut(cut, handle, point, startPoint, original) {
+    const minimum = 2;
+    const dx = point.x - startPoint.x;
+    const dy = point.y - startPoint.y;
+    let left = original.x;
+    let right = original.x + original.w;
+    let top = original.y;
+    let bottom = original.y + original.h;
+    if (handle.includes('w')) left = clamp(original.x + dx, 0, right - minimum);
+    if (handle.includes('e')) right = clamp(original.x + original.w + dx, left + minimum, image.naturalWidth);
+    if (handle.includes('n')) top = clamp(original.y + dy, 0, bottom - minimum);
+    if (handle.includes('s')) bottom = clamp(original.y + original.h + dy, top + minimum, image.naturalHeight);
+    cut.x = Math.round(left);
+    cut.y = Math.round(top);
+    cut.w = Math.max(minimum, Math.round(right - left));
+    cut.h = Math.max(minimum, Math.round(bottom - top));
+  }
+
+  function updateCaptureControls() {
+    const cut = activeCut >= 0 ? cuts[activeCut] : null;
+    $('captureW').disabled = !cut;
+    $('captureH').disabled = !cut;
+    if (!cut) {
+      $('captureSizeLabel').textContent = 'Nenhum';
+      return;
+    }
+    $('captureW').value = cut.w;
+    $('captureH').value = cut.h;
+    $('captureW').max = image ? image.naturalWidth : 4096;
+    $('captureH').max = image ? image.naturalHeight : 4096;
+    $('captureSizeLabel').textContent = `${cut.w} × ${cut.h} px`;
+  }
+
   function groundLine(element, height) {
     if (!$('groundToggle').checked) return;
     const line = document.createElement('span');
     line.className = 'cut-ground';
-    line.style.top = `${Math.min(height, value('groundY')) / height * 100}%`;
+    line.style.top = '100%';
     element.appendChild(line);
   }
 
@@ -89,8 +151,16 @@
       Object.assign(element.style, { left: `${cut.x}px`, top: `${cut.y}px`, width: `${cut.w}px`, height: `${cut.h}px` });
       const label = document.createElement('span');
       label.className = 'cut-number';
-      label.textContent = index + 1;
+      label.textContent = `${index + 1} · ${cut.w}×${cut.h}`;
       element.appendChild(label);
+      if (index === activeCut) {
+        element.style.setProperty('--handle-size', `${8 / zoom}px`);
+        ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'].forEach((position) => {
+          const handle = document.createElement('span');
+          handle.className = `resize-handle handle-${position}`;
+          element.appendChild(handle);
+        });
+      }
       groundLine(element, cut.h);
       overlay.appendChild(element);
     });
@@ -162,10 +232,12 @@
   }
 
   function drawCut(targetCanvas, cut) {
-    targetCanvas.width = cut.w;
-    targetCanvas.height = cut.h;
+    const outputWidth = cutWidth();
+    const outputHeight = cutHeight();
+    targetCanvas.width = outputWidth;
+    targetCanvas.height = outputHeight;
     const targetCtx = targetCanvas.getContext('2d', { willReadFrequently: true });
-    targetCtx.clearRect(0, 0, cut.w, cut.h);
+    targetCtx.clearRect(0, 0, outputWidth, outputHeight);
     targetCtx.imageSmoothingEnabled = false;
     const source = document.createElement('canvas');
     source.width = cut.w;
@@ -178,20 +250,21 @@
     applyTransparency(sourceCtx, cut.w, cut.h, chosenBackground);
 
     if (!fitContent) {
-      targetCtx.drawImage(source, 0, 0);
+      const ground = clamp(value('groundY'), 1, outputHeight);
+      targetCtx.drawImage(source, Math.round((outputWidth - cut.w) / 2), Math.round(ground - cut.h));
       return targetCtx;
     }
 
     const bounds = contentBounds(sourceCtx, cut.w, cut.h);
     if (!bounds) return targetCtx;
-    const padding = Math.min(value('fitPadding'), Math.floor(Math.min(cut.w, cut.h) / 3));
-    const ground = clamp(value('groundY'), padding + 1, cut.h - padding);
-    const availableWidth = Math.max(1, cut.w - padding * 2);
+    const padding = Math.min(value('fitPadding'), Math.floor(Math.min(outputWidth, outputHeight) / 3));
+    const ground = clamp(value('groundY'), padding + 1, outputHeight - padding);
+    const availableWidth = Math.max(1, outputWidth - padding * 2);
     const availableHeight = Math.max(1, ground - padding);
     const scale = Math.min(availableWidth / bounds.w, availableHeight / bounds.h);
     const destinationWidth = Math.max(1, Math.round(bounds.w * scale));
     const destinationHeight = Math.max(1, Math.round(bounds.h * scale));
-    const destinationX = Math.round((cut.w - destinationWidth) / 2);
+    const destinationX = Math.round((outputWidth - destinationWidth) / 2);
     const destinationY = Math.round(ground - destinationHeight);
     targetCtx.drawImage(
       source,
@@ -202,6 +275,7 @@
   }
 
   function updatePreview() {
+    updateCaptureControls();
     $('selectedCount').textContent = cuts.length;
     $('selectionPill').textContent = `${cuts.length} sprite${cuts.length === 1 ? '' : 's'} selecionado${cuts.length === 1 ? '' : 's'}`;
     $('previewSize').textContent = `${cutWidth()} × ${cutHeight()} PNG`;
@@ -282,18 +356,10 @@
     updateAnimationPreview();
   }
 
-  function resizeExistingCuts() {
-    if (!image) return;
-    const w = cutWidth();
-    const h = cutHeight();
-    cuts = cuts.map((cut) => ({
-      x: clamp(cut.x, 0, Math.max(0, image.naturalWidth - w)),
-      y: clamp(cut.y, 0, Math.max(0, image.naturalHeight - h)),
-      w,
-      h
-    }));
-    $('groundY').max = h;
-    if (value('groundY') > h) $('groundY').value = h;
+  function updateOutputSize() {
+    const outputHeight = cutHeight();
+    $('groundY').max = outputHeight;
+    if (value('groundY') > outputHeight) $('groundY').value = outputHeight;
     $('groundValue').textContent = `${value('groundY')} px`;
     refresh();
   }
@@ -308,6 +374,7 @@
     overlay.style.transform = `scale(${zoom})`;
     overlay.style.transformOrigin = 'top left';
     $('zoomLabel').textContent = `${Math.round(zoom * 100)}%`;
+    renderOverlay();
   }
 
   function fitImage() {
@@ -352,18 +419,36 @@
     const point = pointerPosition(event);
     if (drag) {
       const cut = cuts[drag.index];
-      cut.x = Math.round(clamp(point.x - drag.offsetX, 0, Math.max(0, image.naturalWidth - cut.w)));
-      cut.y = Math.round(clamp(point.y - drag.offsetY, 0, Math.max(0, image.naturalHeight - cut.h)));
+      if (drag.type === 'resize') {
+        resizeCut(cut, drag.handle, point, drag.startPoint, drag.original);
+        overlay.style.cursor = cursorForHandle(drag.handle);
+      } else {
+        cut.x = Math.round(clamp(point.x - drag.offsetX, 0, Math.max(0, image.naturalWidth - cut.w)));
+        cut.y = Math.round(clamp(point.y - drag.offsetY, 0, Math.max(0, image.naturalHeight - cut.h)));
+        overlay.style.cursor = 'move';
+      }
       refresh();
       return;
     }
-    hover = centeredCut(point);
+    const handle = activeCut >= 0 ? resizeHandleAt(point, cuts[activeCut]) : null;
+    const existing = cutUnder(point);
+    if (handle) {
+      hover = null;
+      overlay.style.cursor = cursorForHandle(handle);
+    } else if (existing >= 0) {
+      hover = null;
+      overlay.style.cursor = 'move';
+    } else {
+      hover = centeredCut(point);
+      overlay.style.cursor = 'crosshair';
+    }
     renderOverlay();
   });
 
   overlay.addEventListener('pointerleave', () => {
     if (!drag) {
       hover = null;
+      overlay.style.cursor = 'crosshair';
       renderOverlay();
     }
   });
@@ -385,17 +470,27 @@
       return;
     }
 
+    const handle = activeCut >= 0 ? resizeHandleAt(point, cuts[activeCut]) : null;
     const existing = cutUnder(point);
-    if (existing >= 0) {
+    if (handle) {
+      const cut = cuts[activeCut];
+      drag = {
+        type: 'resize',
+        index: activeCut,
+        handle,
+        startPoint: point,
+        original: { x: cut.x, y: cut.y, w: cut.w, h: cut.h }
+      };
+    } else if (existing >= 0) {
       activeCut = existing;
       const cut = cuts[existing];
-      drag = { index: existing, offsetX: point.x - cut.x, offsetY: point.y - cut.y };
+      drag = { type: 'move', index: existing, offsetX: point.x - cut.x, offsetY: point.y - cut.y };
     } else {
       const cut = centeredCut(point);
       cuts.push(cut);
       activeCut = cuts.length - 1;
-      drag = { index: activeCut, offsetX: point.x - cut.x, offsetY: point.y - cut.y };
-      $('status').textContent = `Recorte ${cuts.length} adicionado. Arraste para ajustar.`;
+      drag = { type: 'move', index: activeCut, offsetX: point.x - cut.x, offsetY: point.y - cut.y };
+      $('status').textContent = `Recorte ${cuts.length} adicionado. Use as alças brancas para cortar os espaços extras.`;
     }
     overlay.setPointerCapture(event.pointerId);
     refresh();
@@ -403,8 +498,11 @@
 
   overlay.addEventListener('pointerup', (event) => {
     if (!drag) return;
+    const changedCut = cuts[drag.index];
     drag = null;
+    overlay.style.cursor = 'crosshair';
     if (overlay.hasPointerCapture(event.pointerId)) overlay.releasePointerCapture(event.pointerId);
+    if (changedCut) $('status').textContent = `Área capturada: ${changedCut.w} × ${changedCut.h} px. Saída: ${cutWidth()} × ${cutHeight()} px.`;
     refresh();
   });
 
@@ -535,7 +633,14 @@
   dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
   dropZone.addEventListener('drop', (event) => { event.preventDefault(); dropZone.classList.remove('over'); loadImage(event.dataTransfer.files[0]); });
 
-  ['cellW', 'cellH'].forEach((id) => $(id).addEventListener('input', resizeExistingCuts));
+  ['cellW', 'cellH'].forEach((id) => $(id).addEventListener('input', updateOutputSize));
+  ['captureW', 'captureH'].forEach((id) => $(id).addEventListener('input', () => {
+    if (!image || activeCut < 0 || !cuts[activeCut]) return;
+    const cut = cuts[activeCut];
+    if (id === 'captureW') cut.w = Math.round(clamp(value(id), 2, image.naturalWidth - cut.x));
+    else cut.h = Math.round(clamp(value(id), 2, image.naturalHeight - cut.y));
+    refresh();
+  }));
   ['gapX', 'gapY', 'offsetX', 'offsetY'].forEach((id) => $(id).addEventListener('input', renderOverlay));
   $('gridToggle').addEventListener('change', () => { $('gridOptions').classList.toggle('hidden', !$('gridToggle').checked); renderOverlay(); });
   $('selectionColor').addEventListener('input', () => {

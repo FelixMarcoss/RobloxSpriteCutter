@@ -12,16 +12,21 @@ These repository assets are illustrative SVG previews based on the app's actual 
 
 ![Transparent PNG and ZIP export preview](screenshots/export-preview.svg)
 
+## Update: captured area and final size
+
+The **64 × 68** setting now controls only the final PNG. Each crop has an independent captured area that can be adjusted with eight white handles or the **Largura capturada** and **Altura capturada** fields. Drag the center to move the crop; its label shows the captured dimensions. The preview and animation always retain the configured final size. With fitting enabled, trim away a neighboring drawing and still center the sprite in a transparent 64 × 68 PNG.
+
 ## Features
 
 - **Load a spritesheet:** choose a file or drag it into the upload area. The interface accepts PNG, JPEG, WebP, and GIF image files.
 - **Place crops by hand:** click the spritesheet to add a crop centered around the pointer. Drag an existing crop to reposition it. Crop boxes stay within the image bounds.
-- **Set crop dimensions:** change the shared width and height for the crop boxes. The defaults are 64 × 68 pixels.
+- **Separate capture and output sizes:** the width and height under **Tamanho final do PNG** set only the output canvas, which defaults to 64 × 68 pixels. Each crop has its own captured area, independent of those dimensions.
+- **Adjust each captured area:** the active crop shows eight white handles at its corners and edge centers. Drag a handle to trim the crop and exclude neighboring sprites; drag the center to move it. Use **Largura capturada** and **Altura capturada** to enter precise dimensions. Each crop label displays its captured size.
 - **Use a guide grid:** turn on the auxiliary grid and adjust cell spacing and offsets to help line up crops with a sheet's layout.
 - **Arrange frames:** select a crop to make it active, move it earlier or later in the frame order, or remove one or clear all crops.
-- **Preview output:** inspect the active crop as a PNG and preview the crop sequence as an animation. Animation speed is adjustable from 1 to 24 FPS; it starts at 8 FPS.
+- **Preview output:** the PNG preview and animation always use the configured final dimensions, even when a captured area has a different size. Animation speed is adjustable from 1 to 24 FPS; it starts at 8 FPS.
 - **Remove a flat background:** sample a color from the spritesheet and adjust the tolerance. Similar pixels become transparent, with partial alpha at the edge of the tolerance range to soften the cutout.
-- **Fit characters into a consistent frame:** the enabled-by-default fit option trims transparent or removed-background space, scales the remaining content proportionally, centers it horizontally, and aligns it to the ground guide. The exported canvas keeps the configured crop dimensions. Internal padding is adjustable.
+- **Fit characters into a consistent frame:** the enabled-by-default fit option trims transparent or removed-background space inside the captured area, scales the remaining content proportionally, centers it horizontally, and aligns it to the ground guide. The result is placed on a transparent PNG with the configured final dimensions. Internal padding is adjustable.
 - **Export frames:** save separate `sprite_001.png`, `sprite_002.png`, … files to a chosen folder when the browser supports folder access, or download `sprites_recortados.zip`. The ZIP contains the PNGs in a `sprites/` directory.
 - **Zoom and fit:** zoom the sheet in or out and fit it into the workspace.
 
@@ -30,16 +35,16 @@ These repository assets are illustrative SVG previews based on the app's actual 
 1. Download or clone this repository.
 2. Open `index.html` in a current desktop browser.
 3. Select a PNG, JPEG, WebP, or GIF spritesheet, or drag one into the upload area.
-4. Set the crop width and height. Turn on the auxiliary grid and adjust its spacing or offsets if the sheet has a regular layout.
-5. Click each character to add a crop. Drag crop boxes to fine-tune their positions. Reorder frames if needed.
+4. Set the final PNG width and height. New captured areas start at those dimensions. Turn on the auxiliary grid and adjust its spacing or offsets if the sheet has a regular layout.
+5. Click each character to add a crop. If a capture includes part of a neighboring drawing, drag one of the eight white handles to trim it. Drag the center to move the crop, or enter exact values in **Largura capturada** and **Altura capturada**. Reorder frames if needed.
 6. Review the PNG preview. If the artwork needs cleanup, sample its background color and adjust the tolerance. Keep **Cortar espaços extras e encaixar** enabled to normalize the character's size and baseline within each output frame.
 7. Use **Exportar sprites selecionados** to save to a folder where supported, or **Baixar como ZIP** to download an archive.
 
 ## How the crop and preview work
 
-Each click on the sheet creates a crop centered on the pointer using the current width and height. When the pointer lands on an existing crop, dragging moves that crop instead. Crop order determines the animation order and the numbering of exported files.
+Each click on the sheet creates a captured area centered on the pointer, initially using the current final dimensions. Afterward, each capture can have its own size: drag the eight white handles on the active crop to adjust its edges, or enter values in **Largura capturada** and **Altura capturada**. Drag the center to reposition it. The crop label shows its captured dimensions. Changing the final PNG size does not resize existing captures.
 
-When content fitting is enabled, the preview removes transparent space around the character, scales the remaining content proportionally to fit the output frame and padding, centers it, and places its feet near the configured ground line. The default output frame is 64 × 68 pixels with 2 pixels of internal padding and a ground position of 60 pixels. These values can be adjusted in the interface.
+The configured final size always determines the PNG canvas and both static and animated previews, regardless of the captured area size. When content fitting is enabled, the app trims transparent space around the character inside the captured area, scales the remaining content proportionally to fit the output frame and padding, centers it, and places its feet near the configured ground line. This lets you shrink a capture to exclude a neighboring drawing while fitting the sprite into a transparent 64 × 68 PNG. The default internal padding is 2 pixels and the ground line is at vertical position 60 pixels. These values can be adjusted in the interface.
 
 The background color picker lets you sample a pixel from the loaded image. The tolerance slider controls how close a pixel's color must be to the sampled color before it is made transparent. If fitting is enabled and no color was sampled, the app estimates a background color from the crop's border. Review the preview, especially around fine outlines or colors close to the background, before exporting.
 
